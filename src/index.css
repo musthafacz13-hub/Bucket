@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bucket-green: #08C83D;
+  --color-bucket-blue: #A9C9F5;
+  --color-bucket-pink: #F6C6DA;
+  --color-bucket-yellow: #F9E94E;
+  --color-bucket-navy: #191927;
+  --color-bucket-white: #FFFFFF;
+
+  --color-bucket-border: #E8E8EE;
+  --color-bucket-border-subtle: #F0F0F4;
+  --color-bucket-muted: #646477;
+  --color-bucket-subtle: #8E8EA0;
+  --color-bucket-bg: #FAFAFC;
+  --color-bucket-surface: #FFFFFF;
+  --color-bucket-hover: #F3F3F7;
+  --color-bucket-active: #EBEBEF;
+}
+
+:root {
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+[data-theme="dark"] body {
+  background-color: #12121B !important;
+  color: #FAFAFC !important;
+}
+
+/* Dark mode theme overrides for consistent appearance */
+[data-theme="dark"] .bg-white {
+  background-color: #1A1A28 !important;
+}
+
+[data-theme="dark"] .bg-\[\#FAFAFC\] {
+  background-color: #12121B !important;
+}
+
+[data-theme="dark"] .bg-\[\#F3F3F7\] {
+  background-color: #222234 !important;
+}
+
+[data-theme="dark"] .hover\:bg-\[\#F3F3F7\]:hover {
+  background-color: #26263A !important;
+}
+
+[data-theme="dark"] .hover\:bg-\[\#FAFAFC\]:hover {
+  background-color: #1E1E2E !important;
+}
+
+[data-theme="dark"] .border-\[\#E8E8EE\] {
+  border-color: #2D2D40 !important;
+}
+
+[data-theme="dark"] .border-\[\#F0F0F4\] {
+  border-color: #26263A !important;
+}
+
+[data-theme="dark"] .text-\[\#191927\] {
+  color: #FAFAFC !important;
+}
+
+[data-theme="dark"] .text-\[\#646477\] {
+  color: #A0A0B5 !important;
+}
+
+[data-theme="dark"] .text-\[\#8E8EA0\] {
+  color: #7E7E94 !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--color-bucket-bg, #FAFAFC);
+  color: var(--color-bucket-navy, #191927);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Tabular figures for data, counters, and metrics */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

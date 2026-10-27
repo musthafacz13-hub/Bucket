@@ -1,0 +1,1 @@
+{"routes":[{"path":"/","title":"Bucket Landing"},{"path":"/?view=app","title":"Bucket Workspace"},{"path":"/?view=login","title":"Sign in to Bucket"},{"path":"/?view=signup","title":"Create a Bucket workspace"},{"path":"/?view=forgot-password","title":"Reset your Bucket access"},{"path":"/?view=verify","title":"Verify your Bucket email"}]}

@@ -1,0 +1,6 @@
+{
+  "name": "Bucket — Personal Workspace & Goals",
+  "description": "A clean, Notion-inspired personal workspace for organizing goals, notes, and progress in one calm, focused place.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
