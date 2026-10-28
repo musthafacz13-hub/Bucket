@@ -12,14 +12,12 @@ interface AuthPageProps {
   initialView?: AuthSubView;
   onSuccess: (user: AuthUser) => void;
   onBackToLanding: () => void;
-  onContinueOffline?: () => void;
 }
 
 export const AuthPage: React.FC<AuthPageProps> = ({
   initialView = 'login',
   onSuccess,
   onBackToLanding,
-  onContinueOffline,
 }) => {
   const [subView, setSubView] = useState<AuthSubView>(initialView);
 
@@ -56,7 +54,6 @@ export const AuthPage: React.FC<AuthPageProps> = ({
       title={title}
       subtitle={subtitle}
       onBackToLanding={onBackToLanding}
-      onContinueOffline={onContinueOffline}
     >
       {subView === 'login' && (
         <LoginForm

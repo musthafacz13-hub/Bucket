@@ -5,7 +5,6 @@ import {
   Calendar as CalendarIcon,
   Folder,
   ArrowRight,
-  ExternalLink,
   Check,
   Clock,
   Circle,
@@ -15,7 +14,6 @@ import {
 } from 'lucide-react';
 
 interface InterfacePreviewProps {
-  onEnterWorkspace: () => void;
   onGetStarted?: () => void;
 }
 
@@ -112,7 +110,6 @@ const INITIAL_PREVIEW_NOTES: PreviewNote[] = [
 ];
 
 export const InterfacePreview: React.FC<InterfacePreviewProps> = ({
-  onEnterWorkspace,
   onGetStarted,
 }) => {
   const [activeTab, setActiveTab] = useState<PreviewTab>('goals');
@@ -169,14 +166,6 @@ export const InterfacePreview: React.FC<InterfacePreviewProps> = ({
           <span className="text-[10px] text-[#8E8EA0] uppercase tracking-wider font-medium">
             Illustrative Preview
           </span>
-          <button
-            type="button"
-            onClick={onEnterWorkspace}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-[#191927] hover:text-[#08C83D] transition-colors cursor-pointer"
-          >
-            <span>Open workspace</span>
-            <ExternalLink className="w-3 h-3" />
-          </button>
         </div>
       </div>
 

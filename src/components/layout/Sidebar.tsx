@@ -8,8 +8,6 @@ import {
   Calendar,
   BarChart2,
   Settings,
-  Database,
-  RotateCcw,
   Search,
   Home,
   LogOut,
@@ -25,8 +23,6 @@ interface SidebarProps {
   categoryCount?: number;
   scheduledGoalCount?: number;
   onOpenGlobalSearch?: () => void;
-  onLoadFixtures: () => void;
-  onClearData: () => void;
   onNavigateToLanding?: () => void;
   currentUser?: AuthUser | null;
   onSignOut?: () => void;
@@ -40,8 +36,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   categoryCount,
   scheduledGoalCount,
   onOpenGlobalSearch,
-  onLoadFixtures,
-  onClearData,
   onNavigateToLanding,
   currentUser,
   onSignOut,
@@ -230,33 +224,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       ) : null}
 
-      {/* Developer / Interaction Fixtures Footer */}
-      <div className="p-3 border-t border-[#E8E8EE] bg-[#FAFAFC] space-y-2">
-        <div className="px-2 py-1 flex items-center justify-between text-[11px] text-[#646477]">
-          <span>Test Fixtures</span>
-          <span className="text-[10px] font-mono text-[#8E8EA0]">Dev Mode</span>
-        </div>
-        <div className="grid grid-cols-2 gap-1.5">
-          <button
-            type="button"
-            onClick={onLoadFixtures}
-            className="flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-[#191927] bg-white border border-[#E8E8EE] rounded hover:bg-[#F3F3F7] transition-colors"
-            title="Load isolated sample data for interaction testing"
-          >
-            <Database className="w-3 h-3 text-[#646477]" />
-            <span>Load Data</span>
-          </button>
-          <button
-            type="button"
-            onClick={onClearData}
-            className="flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] font-medium text-[#646477] bg-white border border-[#E8E8EE] rounded hover:text-red-600 hover:bg-red-50 transition-colors"
-            title="Reset workspace to pure empty state"
-          >
-            <RotateCcw className="w-3 h-3" />
-            <span>Clear</span>
-          </button>
-        </div>
-      </div>
     </aside>
   );
 };

@@ -7,15 +7,11 @@ import {
 } from './utils/calculations';
 import {
   loadStoredGoals,
-  saveStoredGoals,
   loadStoredNotes,
-  saveStoredNotes,
   loadStoredCategories,
-  saveStoredCategories,
   clearWorkspaceData,
-  getFixtureData,
   loadStoredPreferences,
-  saveStoredPreferences,
+  DEFAULT_PREFERENCES,
   applyTheme,
   WorkspacePreferences,
 } from './utils/storage';
@@ -115,16 +111,13 @@ export default function App() {
 
   // Primary Workspace Data
   const [goals, setGoals] = useState<Goal[]>(() => {
-    const stored = loadStoredGoals();
-    return stored.length ? stored : getFixtureData().goals;
+    return loadStoredGoals();
   });
   const [notes, setNotes] = useState<Note[]>(() => {
-    const stored = loadStoredNotes();
-    return stored.length ? stored : getFixtureData().notes;
+    return loadStoredNotes();
   });
   const [categories, setCategories] = useState<Category[]>(() => {
-    const stored = loadStoredCategories();
-    return stored.length ? stored : getFixtureData().categories;
+    return loadStoredCategories();
   });
   const [preferences, setPreferences] = useState<WorkspacePreferences>(() => loadStoredPreferences());
 
@@ -178,39 +171,16 @@ export default function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Sync to Local Storage ONLY when in guest unauthenticated mode
-  useEffect(() => {
-    if (authStatus === 'unauthenticated' && !currentUser) {
-      saveStoredGoals(goals);
-    }
-  }, [goals, currentUser, authStatus]);
-
-  useEffect(() => {
-    if (authStatus === 'unauthenticated' && !currentUser) {
-      saveStoredNotes(notes);
-    }
-  }, [notes, currentUser, authStatus]);
-
-  useEffect(() => {
-    if (authStatus === 'unauthenticated' && !currentUser) {
-      saveStoredCategories(categories);
-    }
-  }, [categories, currentUser, authStatus]);
-
   // Synchronize theme & persist preferences
   useEffect(() => {
     applyTheme(preferences.theme);
-    if (authStatus === 'unauthenticated' && !currentUser) {
-      saveStoredPreferences(preferences);
-    }
-
     if (preferences.theme === 'system' && typeof window !== 'undefined' && window.matchMedia) {
       const media = window.matchMedia('(prefers-color-scheme: dark)');
       const handleChange = () => applyTheme('system');
       media.addEventListener('change', handleChange);
       return () => media.removeEventListener('change', handleChange);
     }
-  }, [preferences, currentUser, authStatus]);
+  }, [preferences]);
 
   // Load Cloud Workspace Data from Supabase with clear error state and retry support
   const loadCloudWorkspace = useCallback(async (user: AuthUser) => {
@@ -288,11 +258,11 @@ export default function App() {
     setCurrentUser(null);
     setAuthStatus('unauthenticated');
     setCloudError(null);
-    // Purge in-memory user data and restore clean local guest workspace
-    setGoals(loadStoredGoals());
-    setNotes(loadStoredNotes());
-    setCategories(loadStoredCategories());
-    setPreferences(loadStoredPreferences());
+    clearWorkspaceData();
+    setGoals([]);
+    setNotes([]);
+    setCategories([]);
+    setPreferences(DEFAULT_PREFERENCES);
     setAppView('landing');
     addToast('Signed out of Bucket', 'info');
   };
@@ -309,9 +279,6 @@ export default function App() {
       } catch (err) {
         addToast(err instanceof Error ? err.message : 'Failed to save preferences to cloud', 'error');
       }
-    } else {
-      saveStoredPreferences(next);
-      addToast('Preferences saved');
     }
   };
 
@@ -1043,15 +1010,6 @@ export default function App() {
     return { goalCount, noteCount };
   }, [deletingCategory, goals, notes]);
 
-  // Developer / Fixture Controls
-  const handleLoadFixtures = () => {
-    const fixtures = getFixtureData();
-    setGoals(fixtures.goals);
-    setNotes(fixtures.notes);
-    setCategories(fixtures.categories);
-    addToast('Loaded development sample fixtures', 'info');
-  };
-
   const handleClearWorkspace = () => {
     clearWorkspaceData();
     setGoals([]);
@@ -1073,7 +1031,6 @@ export default function App() {
         <LandingPage
           onGetStarted={() => setAppView('signup')}
           onLogin={() => setAppView('login')}
-          onEnterWorkspace={() => setAppView('app')}
         />
         <Toast toasts={toasts} onDismiss={dismissToast} />
       </>
@@ -1107,10 +1064,6 @@ export default function App() {
             addToast(`Welcome, ${user.name || user.email}!`, 'success');
           }}
           onBackToLanding={() => setAppView('landing')}
-          onContinueOffline={() => {
-            setAppView('app');
-            addToast('Exploring workspace in offline guest mode', 'info');
-          }}
         />
         <Toast toasts={toasts} onDismiss={dismissToast} />
       </>
@@ -1158,6 +1111,25 @@ export default function App() {
     );
   }
 
+  if (appView === 'app' && authStatus === 'unauthenticated') {
+    return (
+      <>
+        <AuthPage
+          initialView="login"
+          onSuccess={(user) => {
+            setCurrentUser(user);
+            setAuthStatus('authenticated');
+            setAppView('app');
+            void loadCloudWorkspace(user);
+            addToast(`Welcome, ${user.name || user.email}!`, 'success');
+          }}
+          onBackToLanding={() => setAppView('landing')}
+        />
+        <Toast toasts={toasts} onDismiss={dismissToast} />
+      </>
+    );
+  }
+
   // Render Full Workspace View
   return (
     <AppShell
@@ -1172,8 +1144,6 @@ export default function App() {
       noteCount={notes.length}
       categoryCount={categories.length}
       scheduledGoalCount={scheduledGoalCount}
-      onLoadFixtures={handleLoadFixtures}
-      onClearData={handleClearWorkspace}
       onNavigateToLanding={() => setAppView('landing')}
       currentUser={currentUser}
       onSignOut={handleSignOut}
@@ -1289,7 +1259,6 @@ export default function App() {
           noteCount={notes.length}
           categoryCount={categories.length}
           onClearWorkspaceData={handleClearWorkspace}
-          onResetWorkspaceData={handleLoadFixtures}
         />
       ) : (
         <ComingSoonView

@@ -3,14 +3,12 @@ import { ArrowRight, Menu, X } from 'lucide-react';
 
 interface LandingHeaderProps {
   onGetStarted: () => void;
-  onEnterWorkspace: () => void;
   onScrollToSection: (sectionId: string) => void;
   onLogin?: () => void;
 }
 
 export const LandingHeader: React.FC<LandingHeaderProps> = ({
   onGetStarted,
-  onEnterWorkspace,
   onScrollToSection,
   onLogin,
 }) => {
@@ -77,13 +75,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
           >
             How it works
           </button>
-          <button
-            type="button"
-            onClick={onEnterWorkspace}
-            className="hover:text-[#191927] transition-colors cursor-pointer py-1"
-          >
-            Workspace
-          </button>
         </nav>
 
         {/* Zone 3: Primary Actions */}
@@ -142,16 +133,6 @@ export const LandingHeader: React.FC<LandingHeaderProps> = ({
             className="w-full text-left px-3 py-2 text-xs font-medium text-[#191927] hover:bg-[#F3F3F7] rounded-md"
           >
             How it works
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMobileMenuOpen(false);
-              onEnterWorkspace();
-            }}
-            className="w-full text-left px-3 py-2 text-xs font-medium text-[#191927] hover:bg-[#F3F3F7] rounded-md"
-          >
-            Workspace
           </button>
           {onLogin && (
             <button

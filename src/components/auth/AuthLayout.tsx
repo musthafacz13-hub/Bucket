@@ -6,7 +6,6 @@ interface AuthLayoutProps {
   title: string;
   subtitle: string;
   onBackToLanding: () => void;
-  onContinueOffline?: () => void;
   children: React.ReactNode;
 }
 
@@ -14,7 +13,6 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   title,
   subtitle,
   onBackToLanding,
-  onContinueOffline,
   children,
 }) => {
   const isConfigured = isSupabaseConfigured();
@@ -89,18 +87,6 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           {/* Form and Actions */}
           {children}
 
-          {/* Optional Guest Mode Access */}
-          {onContinueOffline && (
-            <div className="mt-6 pt-5 border-t border-[#F0F0F4] text-center">
-              <button
-                type="button"
-                onClick={onContinueOffline}
-                className="text-xs font-medium text-[#646477] hover:text-[#191927] hover:underline cursor-pointer transition-colors"
-              >
-                Or explore the workspace offline (guest mode)
-              </button>
-            </div>
-          )}
         </div>
       </main>
 

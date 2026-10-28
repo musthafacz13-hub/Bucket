@@ -13,7 +13,6 @@ import {
   FileText,
   Database,
   Trash2,
-  RotateCcw,
   AlertTriangle,
   CheckCircle2,
   X,
@@ -32,7 +31,6 @@ interface SettingsScreenProps {
   noteCount: number;
   categoryCount: number;
   onClearWorkspaceData: () => void;
-  onResetWorkspaceData: () => void;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -42,11 +40,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   noteCount,
   categoryCount,
   onClearWorkspaceData,
-  onResetWorkspaceData,
 }) => {
   // Confirmation Modal States
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isReplaceTurnstileModalOpen, setIsReplaceTurnstileModalOpen] = useState(false);
   const [turnstileConfigStatus, setTurnstileConfigStatus] = useState<'configured' | 'cleared'>(() =>
     getTurnstileSiteKey() ? 'configured' : 'cleared'
@@ -324,27 +320,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <div className="pt-4 border-t border-[#F0F0F4] space-y-3">
           <span className="text-xs font-semibold text-[#191927]">Workspace Actions</span>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* Reset to Sample Fixtures */}
-            <div className="p-4 rounded-xl border border-[#E8E8EE] bg-white flex flex-col justify-between gap-3">
-              <div>
-                <div className="text-xs font-semibold text-[#191927] flex items-center gap-1.5">
-                  <RotateCcw className="w-3.5 h-3.5 text-[#646477]" />
-                  <span>Reset to Sample Data</span>
-                </div>
-                <p className="text-[11px] text-[#646477] mt-1">
-                  Replace current workspace data with fresh sample goals, notes, and categories.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsResetModalOpen(true)}
-                className="self-start inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#191927] bg-[#FAFAFC] hover:bg-[#F3F3F7] active:bg-[#EBEBEF] border border-[#E8E8EE] rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#191927]"
-              >
-                <span>Reset to Sample Data...</span>
-              </button>
-            </div>
-
+          <div className="grid grid-cols-1 gap-3">
             {/* Clear All Data */}
             <div className="p-4 rounded-xl border border-red-200 bg-red-50/20 flex flex-col justify-between gap-3">
               <div>
@@ -483,77 +459,6 @@ const ClearDataModal: React.FC<{
             className="px-4 py-1.5 text-xs font-medium text-white bg-red-600 hover:bg-red-700 active:bg-red-800 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg transition-colors cursor-pointer"
           >
             Permanently Clear Data
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-/**
- * Reset Data Confirmation Modal
- */
-const ResetDataModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-}> = ({ isOpen, onClose, onConfirm }) => {
-  const modalRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div
-      className="fixed inset-0 z-50 bg-[#191927]/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="reset-modal-title"
-    >
-      <div
-        ref={modalRef}
-        onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl border border-[#E8E8EE] shadow-2xl w-full max-w-md p-6 space-y-4"
-      >
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 shrink-0">
-            <RotateCcw className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 id="reset-modal-title" className="text-sm font-semibold text-[#191927]">
-              Reset to Sample Data?
-            </h3>
-            <p className="text-xs text-[#646477] mt-1 leading-relaxed">
-              This will replace all goals, notes, and categories currently in your workspace with Bucket's default sample fixture items.
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F0F0F4]">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-3.5 py-1.5 text-xs font-medium text-[#646477] hover:text-[#191927] bg-[#FAFAFC] hover:bg-[#F3F3F7] rounded-lg border border-[#E8E8EE] transition-colors cursor-pointer"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            className="px-4 py-1.5 text-xs font-medium text-white bg-[#191927] hover:bg-[#2B2B40] active:bg-[#141420] rounded-lg transition-colors cursor-pointer"
-          >
-            Confirm Reset
           </button>
         </div>
       </div>

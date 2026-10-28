@@ -13,13 +13,11 @@ import { InterfacePreview } from './InterfacePreview';
 
 interface LandingPageProps {
   onGetStarted: () => void;
-  onEnterWorkspace: () => void;
   onLogin?: () => void;
 }
 
 export const LandingPage: React.FC<LandingPageProps> = ({
   onGetStarted,
-  onEnterWorkspace,
   onLogin,
 }) => {
   useEffect(() => {
@@ -38,7 +36,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       {/* 1. Compact Navigation Header */}
       <LandingHeader
         onGetStarted={onGetStarted}
-        onEnterWorkspace={onEnterWorkspace}
         onScrollToSection={scrollToSection}
         onLogin={onLogin}
       />
@@ -122,7 +119,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
           {/* Genuine Interactive Schematic Preview */}
           <InterfacePreview
-            onEnterWorkspace={onEnterWorkspace}
             onGetStarted={onGetStarted}
           />
         </section>
@@ -314,13 +310,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <ArrowRight className="w-4 h-4" />
               </button>
 
-              <button
-                type="button"
-                onClick={onEnterWorkspace}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 text-sm font-semibold text-[#191927] bg-white hover:bg-[#F3F3F7] active:bg-[#EBEBEF] border border-[#E8E8EE] rounded-xl transition-colors cursor-pointer min-h-[44px]"
-              >
-                <span>Explore workspace</span>
-              </button>
             </div>
           </div>
         </section>
@@ -378,13 +367,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               className="hover:text-[#191927] transition-colors cursor-pointer"
             >
               How it works
-            </button>
-            <button
-              type="button"
-              onClick={onEnterWorkspace}
-              className="hover:text-[#191927] transition-colors cursor-pointer"
-            >
-              Workspace
             </button>
             {onLogin && (
               <button

@@ -18,8 +18,6 @@ interface AppShellProps {
   noteCount: number;
   categoryCount?: number;
   scheduledGoalCount?: number;
-  onLoadFixtures: () => void;
-  onClearData: () => void;
   onNavigateToLanding?: () => void;
   currentUser?: AuthUser | null;
   onSignOut?: () => void;
@@ -38,8 +36,6 @@ export const AppShell: React.FC<AppShellProps> = ({
   noteCount,
   categoryCount,
   scheduledGoalCount,
-  onLoadFixtures,
-  onClearData,
   onNavigateToLanding,
   currentUser,
   onSignOut,
@@ -59,8 +55,6 @@ export const AppShell: React.FC<AppShellProps> = ({
         categoryCount={categoryCount}
         scheduledGoalCount={scheduledGoalCount}
         onOpenGlobalSearch={onOpenGlobalSearch}
-        onLoadFixtures={onLoadFixtures}
-        onClearData={onClearData}
         onNavigateToLanding={onNavigateToLanding}
         currentUser={currentUser}
         onSignOut={onSignOut}
