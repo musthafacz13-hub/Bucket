@@ -62,10 +62,6 @@ import {
   fetchPreferences,
   upsertPreferences,
 } from './services/dbService';
-import {
-  migrateLocalDataToSupabase,
-  isUserMigrated,
-} from './services/migrationService';
 
 export type AppView =
   | 'landing'
@@ -187,23 +183,8 @@ export default function App() {
     setIsDataLoading(true);
     setCloudError(null);
     try {
-      // 1. Perform safe migration of legacy local items if this user has not migrated yet
-      if (!isUserMigrated(user.id)) {
-        const migrationResult = await migrateLocalDataToSupabase(user.id);
-        if (
-          migrationResult.migrated &&
-          (migrationResult.goalsCount > 0 ||
-            migrationResult.notesCount > 0 ||
-            migrationResult.categoriesCount > 0)
-        ) {
-          addToast(
-            `Migrated ${migrationResult.goalsCount} goals, ${migrationResult.notesCount} notes to your cloud account`,
-            'success'
-          );
-        }
-      }
-
-      // 2. Fetch fresh authenticated data directly from Supabase
+      // Fetch only the authenticated user's cloud data. Legacy guest/fixture
+      // browser records are intentionally not migrated into the account.
       const [cloudCats, cloudGoals, cloudNotes, cloudPrefs] = await Promise.all([
         fetchCategories(),
         fetchGoals(),
