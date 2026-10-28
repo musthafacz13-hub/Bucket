@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useImperativeHandle, forwardRef } from 'react';
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useImperativeHandle,
+  forwardRef,
+} from 'react';
 import { ShieldCheck, AlertCircle, RefreshCw } from 'lucide-react';
 
 export interface TurnstileWidgetRef {
@@ -67,10 +73,19 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
   ({ onSuccess, onError, onExpire, className = '', theme = 'light' }, ref) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const widgetIdRef = useRef<string | null>(null);
+    const onSuccessRef = useRef(onSuccess);
+    const onErrorRef = useRef(onError);
+    const onExpireRef = useRef(onExpire);
     const [loadState, setLoadState] = useState<'loading' | 'ready' | 'error'>('loading');
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const siteKey = getTurnstileSiteKey();
+
+    useEffect(() => {
+      onSuccessRef.current = onSuccess;
+      onErrorRef.current = onError;
+      onExpireRef.current = onExpire;
+    }, [onSuccess, onError, onExpire]);
 
     const resetWidget = () => {
       if (window.turnstile && widgetIdRef.current) {
@@ -88,16 +103,21 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
 
     useEffect(() => {
       let isMounted = true;
+      let hasRendered = false;
       const scriptId = 'cf-turnstile-script';
 
       if (!siteKey) {
         setLoadState('error');
         setErrorMessage('Security verification is not configured. Missing VITE_TURNSTILE_SITE_KEY.');
-        return;
+        return () => {
+          isMounted = false;
+        };
       }
 
       const renderWidget = () => {
-        if (!isMounted || !containerRef.current || !window.turnstile) return;
+        if (!isMounted || hasRendered || !containerRef.current || !window.turnstile) return;
+
+        hasRendered = true;
 
         // Clean up previous widget instance if any
         if (widgetIdRef.current) {
@@ -113,7 +133,7 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
             callback: (token: string) => {
               if (isMounted) {
                 setErrorMessage(null);
-                onSuccess(token);
+                onSuccessRef.current(token);
               }
             },
             'error-callback': (code: string) => {
@@ -125,13 +145,13 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
                   msg = 'Invalid site key: please verify your Cloudflare Turnstile site key.';
                 }
                 setErrorMessage(msg);
-                if (onError) onError(msg);
+                onErrorRef.current?.(msg);
               }
             },
             'expired-callback': () => {
               if (isMounted) {
                 setErrorMessage('Verification expired. Please check the box again.');
-                if (onExpire) onExpire();
+                onExpireRef.current?.();
               }
             },
             theme,
@@ -178,17 +198,19 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
         script.addEventListener('load', handleLoad);
         script.addEventListener('error', handleError);
 
-        // Fallback polling for turnstile global in case script was already loading
-        const interval = setInterval(() => {
+        // Fallback polling for Turnstile in case the script was already loading.
+        const interval = window.turnstile
+          ? undefined
+          : setInterval(() => {
           if (window.turnstile) {
-            clearInterval(interval);
+            if (interval) clearInterval(interval);
             handleLoad();
           }
         }, 100);
 
         return () => {
           isMounted = false;
-          clearInterval(interval);
+          if (interval) clearInterval(interval);
           script?.removeEventListener('load', handleLoad);
           script?.removeEventListener('error', handleError);
           if (widgetIdRef.current && window.turnstile) {
@@ -207,7 +229,7 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
           } catch {}
         }
       };
-    }, [siteKey, theme, onSuccess, onError, onExpire]);
+    }, [siteKey, theme]);
 
     return (
       <div className={`space-y-1.5 ${className}`}>

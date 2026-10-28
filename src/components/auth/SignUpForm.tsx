@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Mail } from 'lucide-react';
 import { signUp, AuthUser } from '../../services/authService';
-import { TurnstileWidget, TurnstileWidgetRef } from './TurnstileWidget';
+import { getTurnstileSiteKey, TurnstileWidget, TurnstileWidgetRef } from './TurnstileWidget';
 
 interface SignUpFormProps {
   onSuccess: (user: AuthUser) => void;
@@ -72,6 +72,15 @@ export const SignUpForm: React.FC<SignUpFormProps> = ({
     setFormError(null);
 
     if (!validate()) {
+      return;
+    }
+
+    if (!captchaToken) {
+      setFormError(
+        getTurnstileSiteKey()
+          ? 'Please complete the security verification before creating your account.'
+          : 'Security verification is not configured for this deployment. Add VITE_TURNSTILE_SITE_KEY in Vercel and redeploy.'
+      );
       return;
     }
 

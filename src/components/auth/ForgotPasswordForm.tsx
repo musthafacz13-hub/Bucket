@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { Mail, Loader2, AlertCircle, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { resetPasswordForEmail } from '../../services/authService';
-import { TurnstileWidget, TurnstileWidgetRef } from './TurnstileWidget';
+import { getTurnstileSiteKey, TurnstileWidget, TurnstileWidgetRef } from './TurnstileWidget';
 
 interface ForgotPasswordFormProps {
   onNavigateLogin: () => void;
@@ -30,6 +30,15 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onNaviga
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmed)) {
       setEmailError('Please enter a valid email address.');
+      return;
+    }
+
+    if (!captchaToken) {
+      setFormError(
+        getTurnstileSiteKey()
+          ? 'Please complete the security verification before requesting a reset link.'
+          : 'Security verification is not configured for this deployment. Add VITE_TURNSTILE_SITE_KEY in Vercel and redeploy.'
+      );
       return;
     }
 

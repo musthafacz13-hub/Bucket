@@ -44,7 +44,12 @@ import { LandingPage } from './components/landing/LandingPage';
 import { LoginPage } from './components/auth/LoginPage';
 import { VerificationPage } from './components/auth/VerificationPage';
 import { AuthPage } from './components/auth/AuthPage';
-import { AuthUser } from './services/authService';
+import {
+  AuthUser,
+  getActiveSession,
+  signOut,
+  subscribeToAuthChanges,
+} from './services/authService';
 import {
   fetchCategories,
   createCategory,
@@ -100,8 +105,7 @@ export default function App() {
   });
   const [authEmail, setAuthEmail] = useState<string>('');
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
-  // Frontend-only build: the workspace is always available locally.
-  const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'unauthenticated'>('unauthenticated');
+  const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking');
   const [cloudError, setCloudError] = useState<string | null>(null);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
 
@@ -255,13 +259,32 @@ export default function App() {
     }
   }, [addToast]);
 
-  // Frontend-only build: intentionally do not restore or subscribe to a remote session.
   useEffect(() => {
-    setAuthStatus('unauthenticated');
-    setCurrentUser(null);
-  }, []);
+    let isMounted = true;
+
+    const applySession = (session: Awaited<ReturnType<typeof getActiveSession>>) => {
+      if (!isMounted) return;
+      if (session) {
+        setCurrentUser(session.user);
+        setAuthStatus('authenticated');
+        void loadCloudWorkspace(session.user);
+      } else {
+        setCurrentUser(null);
+        setAuthStatus('unauthenticated');
+      }
+    };
+
+    void getActiveSession().then(applySession);
+    const authSubscription = subscribeToAuthChanges((session) => applySession(session));
+
+    return () => {
+      isMounted = false;
+      authSubscription.unsubscribe();
+    };
+  }, [loadCloudWorkspace]);
 
   const handleSignOut = async () => {
+    await signOut();
     setCurrentUser(null);
     setAuthStatus('unauthenticated');
     setCloudError(null);
@@ -1077,10 +1100,10 @@ export default function App() {
               : 'login'
           }
           onSuccess={(user) => {
-            // Authentication UI remains available as a visual flow, but this build never
-            // establishes a remote session or sends workspace data to a backend.
-            setCurrentUser(null);
+            setCurrentUser(user);
+            setAuthStatus('authenticated');
             setAppView('app');
+            void loadCloudWorkspace(user);
             addToast(`Welcome, ${user.name || user.email}!`, 'success');
           }}
           onBackToLanding={() => setAppView('landing')}
