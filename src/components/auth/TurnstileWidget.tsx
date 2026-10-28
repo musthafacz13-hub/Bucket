@@ -143,6 +143,8 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
                   msg = 'Domain mismatch: please ensure this preview hostname is in Cloudflare Turnstile allowed domains.';
                 } else if (code === '110600') {
                   msg = 'Invalid site key: please verify your Cloudflare Turnstile site key.';
+                } else if (code.startsWith('600')) {
+                  msg = 'Cloudflare could not verify this browser. Retry without a VPN or ad blocker, or use a normal private browser window.';
                 }
                 setErrorMessage(msg);
                 onErrorRef.current?.(msg);
@@ -253,10 +255,22 @@ export const TurnstileWidget = forwardRef<TurnstileWidgetRef, TurnstileWidgetPro
         </div>
 
         {errorMessage && (
-          <p className="text-[11px] text-red-600 flex items-center gap-1 font-medium mt-1">
-            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-            <span>{errorMessage}</span>
-          </p>
+          <div className="mt-1 flex items-start justify-between gap-2">
+            <p className="text-[11px] text-red-600 flex items-center gap-1 font-medium">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{errorMessage}</span>
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setErrorMessage(null);
+                resetWidget();
+              }}
+              className="shrink-0 text-[11px] font-semibold text-[#191927] underline underline-offset-2 hover:text-[#08C83D]"
+            >
+              Try again
+            </button>
+          </div>
         )}
       </div>
     );
