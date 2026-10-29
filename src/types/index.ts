@@ -58,6 +58,7 @@ export interface OverviewMetrics {
 
 export type NavigationItem =
   | 'dashboard'
+  | 'agent'
   | 'bucket-list'
   | 'notes'
   | 'categories'

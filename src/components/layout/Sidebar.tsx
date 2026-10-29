@@ -8,6 +8,7 @@ import {
   Calendar,
   BarChart2,
   Settings,
+  MessageSquareText,
   Search,
   Home,
   LogOut,
@@ -45,6 +46,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'dashboard' as NavigationItem,
       label: 'Dashboard',
       icon: LayoutDashboard,
+    },
+    {
+      id: 'agent' as NavigationItem,
+      label: 'Agent',
+      icon: MessageSquareText,
     },
     {
       id: 'bucket-list' as NavigationItem,

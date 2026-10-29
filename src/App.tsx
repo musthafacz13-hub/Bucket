@@ -34,6 +34,7 @@ import { CategoryDeleteModal } from './components/categories/CategoryDeleteModal
 import { CalendarScreen } from './components/calendar/CalendarScreen';
 import { AnalyticsScreen } from './components/analytics/AnalyticsScreen';
 import { SettingsScreen } from './components/settings/SettingsScreen';
+import { AgentScreen } from './components/agent/AgentScreen';
 import { GlobalSearchModal } from './components/search/GlobalSearchModal';
 import { Toast, ToastMessage } from './components/common/Toast';
 import { LandingPage } from './components/landing/LandingPage';
@@ -1171,6 +1172,12 @@ export default function App() {
           onExploreBucketList={() => setCurrentTab('bucket-list')}
           onExploreNotes={() => setCurrentTab('notes')}
           searchQuery={searchQuery}
+        />
+      ) : currentTab === 'agent' ? (
+        <AgentScreen
+          onRefreshWorkspace={async () => {
+            if (currentUser) await loadCloudWorkspace(currentUser);
+          }}
         />
       ) : currentTab === 'bucket-list' ? (
         <BucketListScreen

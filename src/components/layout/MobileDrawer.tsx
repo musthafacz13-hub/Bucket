@@ -8,6 +8,7 @@ import {
   Calendar,
   BarChart2,
   Settings,
+  MessageSquareText,
   X,
   Search,
   Home,
@@ -117,6 +118,11 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
       id: 'dashboard' as NavigationItem,
       label: 'Dashboard',
       icon: LayoutDashboard,
+    },
+    {
+      id: 'agent' as NavigationItem,
+      label: 'Agent',
+      icon: MessageSquareText,
     },
     {
       id: 'bucket-list' as NavigationItem,
