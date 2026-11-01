@@ -298,7 +298,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             Local Data & Privacy
           </h2>
           <p className="text-xs text-[#646477] mt-0.5">
-            Bucket uses Supabase for signed-in workspace data and keeps only selected browser state locally.
+            Bucket uses Supabase for signed-in workspace data and keeps only selected state in this browser.
           </p>
         </div>
 
@@ -306,9 +306,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <div className="p-4 bg-[#FAFAFC] border border-[#E8E8EE] rounded-xl flex items-start gap-3 text-xs text-[#646477]">
           <HardDrive className="w-4 h-4 text-[#8E8EA0] shrink-0 mt-0.5" aria-hidden="true" />
           <div className="space-y-1">
-            <p className="font-semibold text-[#191927]">Browser storage and cache</p>
+            <p className="font-semibold text-[#191927]">Bucket&apos;s local browser storage</p>
             <p className="leading-relaxed">
-              Saved goals, notes, and categories are synchronized with your authenticated workspace. Persistent browser records are not removed by the cache control below.
+              This estimate covers Bucket-owned persistent localStorage records only. It does not measure laptop storage, browser-wide cache, sessionStorage, IndexedDB, or Cache Storage.
             </p>
           </div>
         </div>
@@ -327,13 +327,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         {/* Storage Usage Summary */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
           <div className="p-3 bg-white border border-[#E8E8EE] rounded-xl text-center">
-            <span className="text-[11px] text-[#8E8EA0]">Stored Goals</span>
+            <span className="text-[11px] text-[#8E8EA0]">Workspace goals</span>
             <div className="text-base font-semibold text-[#191927] tabular-nums mt-0.5">
               {goalCount}
             </div>
           </div>
           <div className="p-3 bg-white border border-[#E8E8EE] rounded-xl text-center">
-            <span className="text-[11px] text-[#8E8EA0]">Stored Notes</span>
+            <span className="text-[11px] text-[#8E8EA0]">Workspace notes</span>
             <div className="text-base font-semibold text-[#191927] tabular-nums mt-0.5">
               {noteCount}
             </div>
@@ -345,9 +345,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             </div>
           </div>
           <div className="p-3 bg-white border border-[#E8E8EE] rounded-xl text-center">
-            <span className="text-[11px] text-[#8E8EA0]">Estimated Size</span>
+            <span className="text-[11px] text-[#8E8EA0]">Bucket local data</span>
             <div className="text-base font-semibold text-[#191927] tabular-nums mt-0.5">
-              {storageStats.formattedSize}
+              {storageStats.available ? storageStats.formattedSize : 'Unavailable'}
             </div>
           </div>
         </div>

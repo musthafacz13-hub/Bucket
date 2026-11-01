@@ -344,19 +344,23 @@ export function applyTheme(theme: ThemeMode): void {
 }
 
 export function getStorageUsageEstimate(): {
+  available: boolean;
   totalBytes: number;
   formattedSize: string;
   keysCount: number;
 } {
   if (typeof window === 'undefined' || !window.localStorage) {
-    return { totalBytes: 0, formattedSize: '0 KB', keysCount: 0 };
+    return { available: false, totalBytes: 0, formattedSize: 'Unavailable', keysCount: 0 };
   }
   try {
     let bytes = 0;
     let keysCount = 0;
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key && key.startsWith('bucket_')) {
+      // Measure only persistent Bucket-owned records. Disposable cache entries,
+      // sessionStorage, Cache Storage, IndexedDB, and device disk usage are not
+      // included in this application-owned estimate.
+      if (key && key.startsWith('bucket_') && !key.startsWith(DISPOSABLE_CACHE_PREFIX)) {
         keysCount++;
         const val = localStorage.getItem(key) || '';
         bytes += (key.length + val.length) * 2; // Approximate UTF-16 byte size
@@ -364,11 +368,12 @@ export function getStorageUsageEstimate(): {
     }
     const kb = (bytes / 1024).toFixed(1);
     return {
+      available: true,
       totalBytes: bytes,
       formattedSize: `${kb} KB`,
       keysCount,
     };
   } catch {
-    return { totalBytes: 0, formattedSize: '0 KB', keysCount: 0 };
+    return { available: false, totalBytes: 0, formattedSize: 'Unavailable', keysCount: 0 };
   }
 }

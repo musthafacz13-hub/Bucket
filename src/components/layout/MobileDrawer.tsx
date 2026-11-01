@@ -12,6 +12,7 @@ import {
   Search,
   Home,
   LogOut,
+  User as UserIcon,
 } from 'lucide-react';
 import { AuthUser } from '../../services/authService';
 
@@ -283,11 +284,11 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
                     className="w-7 h-7 rounded-full bg-[#191927] text-white flex items-center justify-center text-xs font-bold shrink-0"
                     aria-hidden="true"
                   >
-                    {(currentUser.name || 'U').charAt(0).toUpperCase()}
+                    <UserIcon className="w-4 h-4" />
                   </div>
                   <div className="truncate text-left">
                     <p className="text-xs font-semibold text-[#191927] truncate">
-                      {currentUser.name || 'Your account'}
+                      Signed in
                     </p>
                   </div>
                 </div>
@@ -335,7 +336,7 @@ export const MobileDrawer: React.FC<MobileDrawerProps> = ({
               v1.0
             </span>
           </div>
-          <span className="text-[10px] text-[#A0A0B5]">Stored locally in browser</span>
+          <span className="text-[10px] text-[#A0A0B5]">Cloud workspace with selected local state</span>
         </div>
       </div>
     </div>

@@ -183,11 +183,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className="w-6 h-6 rounded-full bg-[#191927] text-white flex items-center justify-center text-[10px] font-bold shrink-0"
                 aria-hidden="true"
               >
-                {(currentUser.name || 'U').charAt(0).toUpperCase()}
+                <UserIcon className="w-3.5 h-3.5" />
               </div>
               <div className="truncate text-left">
                 <p className="text-xs font-semibold text-[#191927] truncate">
-                  {currentUser.name || 'Your account'}
+                  Signed in
                 </p>
               </div>
             </div>
