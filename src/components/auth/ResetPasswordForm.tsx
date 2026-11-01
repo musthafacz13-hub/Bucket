@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { updatePassword } from '../../services/authService';
+import { getActiveSession, signOut, updatePassword } from '../../services/authService';
 
 interface ResetPasswordFormProps {
   onSuccess: () => void;
@@ -16,12 +16,29 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingRecovery, setIsCheckingRecovery] = useState(true);
+  const [hasRecoverySession, setHasRecoverySession] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [isSuccess, setIsSuccess] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<{
     password?: string;
     confirmPassword?: string;
   }>({});
+
+  useEffect(() => {
+    let isMounted = true;
+    void getActiveSession().then((session) => {
+      if (!isMounted) return;
+      setHasRecoverySession(Boolean(session));
+      setIsCheckingRecovery(false);
+      if (!session) {
+        setFormError('This password reset link is invalid or has expired. Request a new link to continue.');
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const validate = (): boolean => {
     const errors: { password?: string; confirmPassword?: string } = {};
@@ -44,6 +61,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading || isCheckingRecovery || !hasRecoverySession) return;
     setFormError(null);
 
     if (!validate()) {
@@ -54,6 +72,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
     try {
       const result = await updatePassword(password);
       if (result.success) {
+        await signOut();
         setIsSuccess(true);
         setTimeout(() => {
           onSuccess();
@@ -190,10 +209,15 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
       {/* Submit Button */}
       <button
         type="submit"
-        disabled={isLoading}
+        disabled={isLoading || isCheckingRecovery || !hasRecoverySession}
         className="w-full mt-2 inline-flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-semibold text-white bg-[#191927] hover:bg-[#2C2C3F] active:bg-[#0E0E18] disabled:opacity-60 rounded-lg shadow-xs transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[#191927]"
       >
-        {isLoading ? (
+        {isCheckingRecovery ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span>Checking recovery link...</span>
+          </>
+        ) : isLoading ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Updating password...</span>

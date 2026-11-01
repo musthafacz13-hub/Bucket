@@ -18,6 +18,7 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({ onNaviga
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading) return;
     setFormError(null);
     setEmailError(null);
 
