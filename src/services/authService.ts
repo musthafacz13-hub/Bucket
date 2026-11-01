@@ -265,6 +265,39 @@ export async function updatePassword(newPassword: string): Promise<AuthResult> {
 }
 
 /**
+ * Updates the signed-in user's display name and, when changed, requests an
+ * email change through Supabase Auth. Supabase may require confirmation for
+ * the new address depending on project settings.
+ */
+export async function updateProfile(name: string, email: string): Promise<AuthResult> {
+  if (!isSupabaseConfigured() || !supabase) {
+    return { success: false, error: CONFIG_MISSING_MESSAGE };
+  }
+
+  try {
+    const current = await supabase.auth.getUser();
+    if (current.error || !current.data.user) {
+      return { success: false, error: 'Your session is no longer valid. Please sign in again.' };
+    }
+
+    const nextEmail = email.trim().toLowerCase();
+    const currentEmail = (current.data.user.email || '').trim().toLowerCase();
+    const { data, error } = await supabase.auth.updateUser({
+      ...(nextEmail && nextEmail !== currentEmail ? { email: nextEmail } : {}),
+      data: { ...current.data.user.user_metadata, full_name: name.trim() },
+    });
+
+    if (error) return { success: false, error: error.message };
+    return {
+      success: true,
+      user: data.user ? mapSupabaseUser(data.user) : undefined,
+    };
+  } catch (err) {
+    return { success: false, error: err instanceof Error ? err.message : 'Failed to update profile.' };
+  }
+}
+
+/**
  * Signs out the current user session from Supabase.
  */
 export async function signOut(): Promise<AuthResult> {

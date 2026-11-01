@@ -11,18 +11,16 @@ import {
   Laptop,
   Calendar,
   FileText,
-  Database,
   Trash2,
   AlertTriangle,
-  CheckCircle2,
-  X,
   HardDrive,
-  Info,
-  ShieldCheck,
-  ShieldAlert,
+  UserRound,
+  Mail,
+  LogOut,
+  Save,
+  RotateCcw,
 } from 'lucide-react';
-import { ReplaceTurnstileModal } from './ReplaceTurnstileModal';
-import { getTurnstileSiteKey } from '../auth/TurnstileWidget';
+import type { AuthUser } from '../../services/authService';
 
 interface SettingsScreenProps {
   preferences: WorkspacePreferences;
@@ -31,6 +29,10 @@ interface SettingsScreenProps {
   noteCount: number;
   categoryCount: number;
   onClearWorkspaceData: () => void;
+  currentUser: AuthUser | null;
+  onUpdateProfile: (name: string, email: string) => Promise<{ success: boolean; error?: string; user?: AuthUser }>;
+  onSignOut: () => Promise<void>;
+  onClearCache: () => number;
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({
@@ -40,21 +42,47 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
   noteCount,
   categoryCount,
   onClearWorkspaceData,
+  currentUser,
+  onUpdateProfile,
+  onSignOut,
+  onClearCache,
 }) => {
   // Confirmation Modal States
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
-  const [isReplaceTurnstileModalOpen, setIsReplaceTurnstileModalOpen] = useState(false);
-  const [turnstileConfigStatus, setTurnstileConfigStatus] = useState<'configured' | 'cleared'>(() =>
-    getTurnstileSiteKey() ? 'configured' : 'cleared'
-  );
+  const [profileName, setProfileName] = useState(currentUser?.name || '');
+  const [profileEmail, setProfileEmail] = useState(currentUser?.email || '');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
+  const [cacheMessage, setCacheMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setProfileName(currentUser?.name || '');
+    setProfileEmail(currentUser?.email || '');
+  }, [currentUser]);
+
+  const handleSaveProfile = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isSavingProfile) return;
+    setIsSavingProfile(true);
+    setProfileMessage(null);
+    const result = await onUpdateProfile(profileName, profileEmail);
+    setProfileMessage(result.success ? 'Profile updated.' : result.error || 'Profile could not be updated.');
+    setIsSavingProfile(false);
+  };
+
+  const handleClearCache = () => {
+    const removed = onClearCache();
+    setCacheMessage(removed ? `Cleared ${removed} disposable cache item${removed === 1 ? '' : 's'}.` : 'No disposable cache was stored. Your saved workspace data was kept.');
+  };
 
   // Storage usage estimate
   const storageStats = getStorageUsageEstimate();
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8 animate-in fade-in duration-150">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5 sm:space-y-6 animate-in fade-in duration-150">
       {/* Title */}
       <div className="border-b border-[#E8E8EE] pb-5">
+        <p className="text-[10px] uppercase tracking-[0.18em] font-semibold text-[#8E8EA0] mb-2">Workspace controls</p>
         <h1 className="text-xl sm:text-2xl font-semibold text-[#191927] tracking-tight">
           Settings & Preferences
         </h1>
@@ -63,8 +91,43 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </p>
       </div>
 
-      {/* 1. Appearance Section */}
-      <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8E8EE] space-y-4" aria-labelledby="appearance-heading">
+      {/* 1. Profile */}
+      <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8E8EE] shadow-[0_14px_36px_-28px_rgba(25,25,39,0.55)] space-y-5" aria-labelledby="profile-heading">
+        <div className="flex items-start justify-between gap-4 border-b border-[#F0F0F4] pb-3">
+          <div>
+            <h2 id="profile-heading" className="text-sm font-semibold text-[#191927]">Profile</h2>
+            <p className="text-xs text-[#646477] mt-0.5">Manage the account currently signed in to Bucket.</p>
+          </div>
+          <div className="w-9 h-9 rounded-full bg-[#191927] text-white flex items-center justify-center text-sm font-semibold shrink-0" aria-hidden="true">
+            {(profileName || profileEmail || 'U').charAt(0).toUpperCase()}
+          </div>
+        </div>
+        <form onSubmit={handleSaveProfile} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="space-y-1.5">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-[#191927]"><UserRound className="w-3.5 h-3.5 text-[#8E8EA0]" /> Display name</span>
+              <input value={profileName} onChange={(event) => setProfileName(event.target.value)} maxLength={120} placeholder="Your name" className="w-full rounded-lg border border-[#E8E8EE] bg-white px-3 py-2 text-sm text-[#191927] outline-none focus:border-[#191927]" />
+            </label>
+            <label className="space-y-1.5">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-[#191927]"><Mail className="w-3.5 h-3.5 text-[#8E8EA0]" /> Email</span>
+              <input type="email" value={profileEmail} onChange={(event) => setProfileEmail(event.target.value)} required maxLength={254} className="w-full rounded-lg border border-[#E8E8EE] bg-white px-3 py-2 text-sm text-[#191927] outline-none focus:border-[#191927]" />
+            </label>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="submit" disabled={isSavingProfile || !profileEmail.trim()} className="inline-flex items-center gap-1.5 rounded-lg bg-[#191927] px-3 py-2 text-xs font-semibold text-white hover:bg-[#2C2C3F] disabled:cursor-not-allowed disabled:opacity-50">
+              <Save className="w-3.5 h-3.5" /> {isSavingProfile ? 'Saving...' : 'Save profile'}
+            </button>
+            <button type="button" onClick={() => void onSignOut()} className="inline-flex items-center gap-1.5 rounded-lg border border-[#E8E8EE] bg-white px-3 py-2 text-xs font-semibold text-[#646477] hover:text-[#191927]">
+              <LogOut className="w-3.5 h-3.5" /> Sign out
+            </button>
+            {profileMessage && <span className="text-xs text-[#646477]" role="status">{profileMessage}</span>}
+          </div>
+        </form>
+        <p className="text-[11px] leading-5 text-[#8E8EA0]">Email changes may require confirmation from the new address. Account deletion is not offered here because this frontend has no secure server-side deletion operation.</p>
+      </section>
+
+      {/* 2. Appearance Section */}
+      <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8E8EE] shadow-[0_14px_36px_-28px_rgba(25,25,39,0.55)] space-y-5" aria-labelledby="appearance-heading">
         <div className="border-b border-[#F0F0F4] pb-3">
           <h2 id="appearance-heading" className="text-sm font-semibold text-[#191927]">
             Appearance & Theme
@@ -144,7 +207,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
       </section>
 
       {/* 2. Workspace Defaults */}
-      <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8E8EE] space-y-4" aria-labelledby="preferences-heading">
+      <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8E8EE] shadow-[0_14px_36px_-28px_rgba(25,25,39,0.55)] space-y-5" aria-labelledby="preferences-heading">
         <div className="border-b border-[#F0F0F4] pb-3">
           <h2 id="preferences-heading" className="text-sm font-semibold text-[#191927]">
             Workspace Defaults
@@ -228,52 +291,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </div>
       </section>
 
-      {/* 3. Security & Bot Protection (Cloudflare Turnstile) */}
-      <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8E8EE] space-y-4" aria-labelledby="security-heading">
-        <div className="border-b border-[#F0F0F4] pb-3">
-          <h2 id="security-heading" className="text-sm font-semibold text-[#191927]">
-            Security &amp; Bot Protection
-          </h2>
-          <p className="text-xs text-[#646477] mt-0.5">
-            Cloudflare Turnstile CAPTCHA protects authentication endpoints from automated abuse.
-          </p>
-        </div>
-
-        <div className="p-4 rounded-xl border border-[#E8E8EE] bg-[#FAFAFC] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-[#08C83D] shrink-0">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="text-xs font-semibold text-[#191927]">
-                Cloudflare Turnstile Integration
-              </div>
-              <p className="text-[11px] text-[#646477] mt-0.5">
-                {turnstileConfigStatus === 'configured'
-                  ? 'Configured and active via VITE_TURNSTILE_SITE_KEY.'
-                  : 'Configuration cleared. Ready to accept new VITE_TURNSTILE_SITE_KEY.'}
-              </p>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setIsReplaceTurnstileModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#191927] bg-white hover:bg-[#F3F3F7] active:bg-[#EBEBEF] border border-[#E8E8EE] rounded-lg transition-colors cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#191927]"
-          >
-            <span>Replace CAPTCHA Configuration...</span>
-          </button>
-        </div>
-      </section>
-
-      {/* 4. Local Data & Storage */}
-      <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8E8EE] space-y-4" aria-labelledby="storage-heading">
+      {/* 3. Local Data & Storage */}
+      <section className="bg-white p-5 sm:p-6 rounded-2xl border border-[#E8E8EE] shadow-[0_14px_36px_-28px_rgba(25,25,39,0.55)] space-y-5" aria-labelledby="storage-heading">
         <div className="border-b border-[#F0F0F4] pb-3">
           <h2 id="storage-heading" className="text-sm font-semibold text-[#191927]">
             Local Data & Privacy
           </h2>
           <p className="text-xs text-[#646477] mt-0.5">
-            Bucket keeps 100% of your personal workspace data stored locally in this browser.
+            Bucket uses Supabase for signed-in workspace data and keeps only selected browser state locally.
           </p>
         </div>
 
@@ -281,11 +306,22 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         <div className="p-4 bg-[#FAFAFC] border border-[#E8E8EE] rounded-xl flex items-start gap-3 text-xs text-[#646477]">
           <HardDrive className="w-4 h-4 text-[#8E8EA0] shrink-0 mt-0.5" aria-hidden="true" />
           <div className="space-y-1">
-            <p className="font-semibold text-[#191927]">Offline & Private Local Storage</p>
+            <p className="font-semibold text-[#191927]">Browser storage and cache</p>
             <p className="leading-relaxed">
-              Your goals, notes, categories, and settings are saved directly in your browser's Local Storage. No external servers or cloud accounts are used.
+              Saved goals, notes, and categories are synchronized with your authenticated workspace. Persistent browser records are not removed by the cache control below.
             </p>
           </div>
+        </div>
+
+        <div className="p-4 rounded-xl border border-[#E8E8EE] bg-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <div className="text-xs font-semibold text-[#191927] flex items-center gap-1.5"><RotateCcw className="w-3.5 h-3.5 text-[#646477]" /> Clear disposable cache</div>
+            <p className="text-[11px] text-[#646477] mt-1">Removes only keys explicitly marked as temporary. It does not sign you out or delete workspace records.</p>
+          </div>
+          <button type="button" onClick={handleClearCache} className="inline-flex shrink-0 items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#191927] bg-white hover:bg-[#F3F3F7] border border-[#E8E8EE] rounded-lg">
+            Clear Cache
+          </button>
+          {cacheMessage && <span className="text-[11px] text-[#646477]" role="status">{cacheMessage}</span>}
         </div>
 
         {/* Storage Usage Summary */}
@@ -357,18 +393,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         />
       )}
 
-      {/* Confirmation Modal: Replace Cloudflare Turnstile Configuration */}
-      {isReplaceTurnstileModalOpen && (
-        <ReplaceTurnstileModal
-          isOpen={isReplaceTurnstileModalOpen}
-          onClose={() => setIsReplaceTurnstileModalOpen(false)}
-          currentSiteKey={getTurnstileSiteKey()}
-          onConfirm={() => {
-            setIsReplaceTurnstileModalOpen(false);
-            setTurnstileConfigStatus('cleared');
-          }}
-        />
-      )}
     </div>
   );
 };

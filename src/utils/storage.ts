@@ -5,6 +5,7 @@ import { parseYmdDate } from './date';
 const GOALS_KEY = 'bucket_goals_v1';
 const NOTES_KEY = 'bucket_notes_v1';
 const CATEGORIES_KEY = 'bucket_categories_v1';
+const DISPOSABLE_CACHE_PREFIX = 'bucket_cache_';
 
 const VALID_STATUSES: GoalStatus[] = ['Not Started', 'In Progress', 'Completed'];
 const VALID_PRIORITIES: GoalPriority[] = ['Low', 'Medium', 'High'];
@@ -244,6 +245,32 @@ export function clearWorkspaceData(): void {
   }
 }
 
+/**
+ * Removes only explicitly disposable Bucket cache entries. Persistent workspace
+ * records, preferences, migration backups, and Supabase auth storage are kept.
+ */
+export function clearDisposableCache(): number {
+  if (typeof window === 'undefined') return 0;
+  let removed = 0;
+  const stores = [window.localStorage, window.sessionStorage];
+  for (const store of stores) {
+    try {
+      const keys: string[] = [];
+      for (let i = 0; i < store.length; i += 1) {
+        const key = store.key(i);
+        if (key?.startsWith(DISPOSABLE_CACHE_PREFIX)) keys.push(key);
+      }
+      keys.forEach((key) => {
+        store.removeItem(key);
+        removed += 1;
+      });
+    } catch (err) {
+      console.error('Failed to clear disposable Bucket cache:', err);
+    }
+  }
+  return removed;
+}
+
 export function getFixtureData(): { goals: Goal[]; notes: Note[]; categories: Category[] } {
   return {
     goals: SAMPLE_GOALS,
@@ -345,4 +372,3 @@ export function getStorageUsageEstimate(): {
     return { totalBytes: 0, formattedSize: '0 KB', keysCount: 0 };
   }
 }
-

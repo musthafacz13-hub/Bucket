@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Goal, Note, Category, NavigationItem, GoalPriority, GoalStatus } from './types';
 import {
   calculateMetrics,
@@ -10,6 +10,7 @@ import {
   loadStoredNotes,
   loadStoredCategories,
   clearWorkspaceData,
+  clearDisposableCache,
   loadStoredPreferences,
   DEFAULT_PREFERENCES,
   applyTheme,
@@ -34,7 +35,6 @@ import { CategoryDeleteModal } from './components/categories/CategoryDeleteModal
 import { CalendarScreen } from './components/calendar/CalendarScreen';
 import { AnalyticsScreen } from './components/analytics/AnalyticsScreen';
 import { SettingsScreen } from './components/settings/SettingsScreen';
-import { AgentScreen } from './components/agent/AgentScreen';
 import { GlobalSearchModal } from './components/search/GlobalSearchModal';
 import { Toast, ToastMessage } from './components/common/Toast';
 import { LandingPage } from './components/landing/LandingPage';
@@ -45,6 +45,7 @@ import {
   AuthUser,
   getActiveSession,
   signOut,
+  updateProfile,
   subscribeToAuthChanges,
 } from './services/authService';
 import {
@@ -101,6 +102,7 @@ export default function App() {
   const [authStatus, setAuthStatus] = useState<'checking' | 'authenticated' | 'unauthenticated'>('checking');
   const [cloudError, setCloudError] = useState<string | null>(null);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(false);
+  const workspaceLoadRef = useRef<{ userId: string; promise: Promise<void> } | null>(null);
 
   // Navigation State
   const [currentTab, setCurrentTab] = useState<NavigationItem>('dashboard');
@@ -181,6 +183,11 @@ export default function App() {
 
   // Load Cloud Workspace Data from Supabase with clear error state and retry support
   const loadCloudWorkspace = useCallback(async (user: AuthUser) => {
+    if (workspaceLoadRef.current?.userId === user.id) {
+      return workspaceLoadRef.current.promise;
+    }
+
+    const loadPromise = (async () => {
     setIsDataLoading(true);
     setCloudError(null);
     try {
@@ -208,6 +215,16 @@ export default function App() {
       addToast(msg, 'error');
     } finally {
       setIsDataLoading(false);
+    }
+    })();
+
+    workspaceLoadRef.current = { userId: user.id, promise: loadPromise };
+    try {
+      await loadPromise;
+    } finally {
+      if (workspaceLoadRef.current?.promise === loadPromise) {
+        workspaceLoadRef.current = null;
+      }
     }
   }, [addToast]);
 
@@ -240,7 +257,6 @@ export default function App() {
     setCurrentUser(null);
     setAuthStatus('unauthenticated');
     setCloudError(null);
-    clearWorkspaceData();
     setGoals([]);
     setNotes([]);
     setCategories([]);
@@ -248,6 +264,19 @@ export default function App() {
     setAppView('landing');
     addToast('Signed out of Bucket', 'info');
   };
+
+  const handleUpdateProfile = async (name: string, email: string) => {
+    const result = await updateProfile(name, email);
+    if (result.success && result.user) {
+      setCurrentUser(result.user);
+      addToast('Profile updated');
+    } else if (!result.success) {
+      addToast(result.error || 'Profile could not be updated.', 'error');
+    }
+    return result;
+  };
+
+  const handleClearCache = () => clearDisposableCache();
 
   const handleUpdatePreferences = async (updated: Partial<WorkspacePreferences>) => {
     const next = { ...preferences, ...updated };
@@ -1173,12 +1202,6 @@ export default function App() {
           onExploreNotes={() => setCurrentTab('notes')}
           searchQuery={searchQuery}
         />
-      ) : currentTab === 'agent' ? (
-        <AgentScreen
-          onRefreshWorkspace={async () => {
-            if (currentUser) await loadCloudWorkspace(currentUser);
-          }}
-        />
       ) : currentTab === 'bucket-list' ? (
         <BucketListScreen
           goals={goals}
@@ -1247,6 +1270,10 @@ export default function App() {
           noteCount={notes.length}
           categoryCount={categories.length}
           onClearWorkspaceData={handleClearWorkspace}
+          currentUser={currentUser}
+          onUpdateProfile={handleUpdateProfile}
+          onSignOut={handleSignOut}
+          onClearCache={handleClearCache}
         />
       ) : (
         <ComingSoonView

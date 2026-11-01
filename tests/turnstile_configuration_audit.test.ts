@@ -52,8 +52,8 @@ async function runAudit() {
   console.log('\n--- 2. Obsolete Key & Fallback Key Elimination Audit ---');
 
   assert(
-    !envContent.includes('OBSOLETE_TURNSTILE_KEY_REDACTED'),
-    'Obsolete Turnstile site key "OBSOLETE_TURNSTILE_KEY_REDACTED" is completely absent from .env'
+    !envContent.includes('REDACTED_OBSOLETE_TURNSTILE_KEY'),
+    'Obsolete Turnstile site key is completely absent from .env'
   );
 
   assert(
@@ -72,7 +72,7 @@ async function runAudit() {
       } else if (entry.isFile() && (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx'))) {
         const content = fs.readFileSync(fullPath, 'utf-8');
         assert(
-          !content.includes('OBSOLETE_TURNSTILE_KEY_REDACTED'),
+          !content.includes('REDACTED_OBSOLETE_TURNSTILE_KEY'),
           `No obsolete key in ${entry.name}`
         );
         assert(

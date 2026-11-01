@@ -8,7 +8,6 @@ import {
   Calendar,
   BarChart2,
   Settings,
-  MessageSquareText,
   Search,
   Home,
   LogOut,
@@ -46,11 +45,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'dashboard' as NavigationItem,
       label: 'Dashboard',
       icon: LayoutDashboard,
-    },
-    {
-      id: 'agent' as NavigationItem,
-      label: 'Agent',
-      icon: MessageSquareText,
     },
     {
       id: 'bucket-list' as NavigationItem,
@@ -189,15 +183,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className="w-6 h-6 rounded-full bg-[#191927] text-white flex items-center justify-center text-[10px] font-bold shrink-0"
                 aria-hidden="true"
               >
-                {(currentUser.name || currentUser.email || 'U').charAt(0).toUpperCase()}
+                {(currentUser.name || 'U').charAt(0).toUpperCase()}
               </div>
               <div className="truncate text-left">
                 <p className="text-xs font-semibold text-[#191927] truncate">
-                  {currentUser.name || currentUser.email}
+                  {currentUser.name || 'Your account'}
                 </p>
-                {currentUser.name && (
-                  <p className="text-[10px] text-[#8E8EA0] truncate">{currentUser.email}</p>
-                )}
               </div>
             </div>
             {onSignOut && (
